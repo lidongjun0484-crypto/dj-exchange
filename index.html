@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>dj交易所 - 收银台演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 微信风格的成功图标动画 */
+        .wechat-icon-animate {
+            animation: scaleIn 0.4s ease-in-out;
+        }
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-800 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="fixed top-4 left-4 right-4 bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded shadow-lg z-50 flex items-center animate-bounce-slow">
+        <div class="flex-shrink-0 mr-2">
+            <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        <p class="text-sm font-medium">
+            提示：单笔支付满 <span class="font-bold">5000元</span> 以上，即有机会获得惊喜红包！
+        </p>
+    </div>
+
+    <main class="w-full max-w-md">
+
+        <div id="input-view" class="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
+            <div class="bg-slate-900 p-6 text-white text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                <h2 class="text-xl font-bold tracking-wider">DJ EXCHANGE</h2>
+                <p class="text-slate-400 text-sm">安全快捷收银台</p>
+            </div>
+            
+            <div class="p-8">
+                <div class="mb-6">
+                    <label for="amount" class="block text-gray-600 text-sm font-medium mb-2">请输入支付金额 (CNY)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-2xl">¥</span>
+                        <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01"
+                            class="w-full pl-10 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-3xl font-bold text-gray-800 transition-colors text-right"
+                            oninput="checkAmount(this.value)">
+                    </div>
+                    <p id="amount-tip" class="text-xs text-red-500 mt-2 hidden">为获得红包机会，建议输入 5000 以上</p>
+                </div>
+
+                <button onclick="simulatePayment()" id="payBtn"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl transition duration-200 flex items-center justify-center text-lg shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    <span>立即支付</span>
+                    <svg id="btn-spinner" class="hidden animate-spin ml-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+
+                <div class="mt-6 flex items-center justify-center space-x-2 text-sm text-gray-400">
+                    <svg class="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    <span>SSL安全加密传输</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="success-view" class="hidden bg-white rounded-2xl shadow-2xl h-[500px] flex flex-col">
+            <div class="bg-gray-50 px-4 py-3 flex items-center border-b border-gray-100">
+                <span class="text-gray-800 font-medium text-lg">支付成功</span>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                <div class="wechat-icon-animate mb-6">
+                    <svg width="80" height="80" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="30" cy="30" r="30" fill="#07C160"/>
+                        <path d="M18 30L27 39L42 21" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                
+                <h3 class="text-gray-500 mb-2">成功支付给 dj交易所</h3>
+                <div class="text-4xl font-bold text-gray-900 mb-8">
+                    ¥ <span id="paid-amount-display">0.00</span>
+                </div>
+
+                <div class="w-full border-t border-gray-100 py-4">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-gray-500">支付方式</span>
+                        <span class="text-gray-900">零钱</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">交易时间</span>
+                        <span id="pay-time" class="text-gray-900"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <button onclick="resetDemo()" class="w-full border border-green-500 text-green-500 font-bold py-3 rounded-lg hover:bg-green-50 transition">
+                    完成
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const amountInput = document.getElementById('amount');
+        const amountTip = document.getElementById('amount-tip');
+        const payBtn = document.getElementById('payBtn');
+        const btnSpinner = document.getElementById('btn-spinner');
+        const inputView = document.getElementById('input-view');
+        const successView = document.getElementById('success-view');
+        const paidAmountDisplay = document.getElementById('paid-amount-display');
+        const payTimeDisplay = document.getElementById('pay-time');
+
+        // 实时检查输入金额，显示提示
+        function checkAmount(val) {
+            const num = parseFloat(val);
+            if (num > 0 && num < 5000) {
+                amountTip.classList.remove('hidden');
+            } else {
+                amountTip.classList.add('hidden');
+            }
+        }
+
+        // 模拟支付过程
+        function simulatePayment() {
+            const amountVal = amountInput.value;
+            
+            // 1. 基础验证
+            if (!amountVal || parseFloat(amountVal) <= 0) {
+                alert('请输入有效的支付金额');
+                amountInput.focus();
+                return;
+            }
+
+            // 2. UI 变为加载状态
+            payBtn.disabled = true;
+            payBtn.querySelector('span').innerText = '正在处理...';
+            btnSpinner.classList.remove('hidden');
+
+            // 3. 模拟网络延迟 (1.5秒) 后切换界面
+            setTimeout(() => {
+                // 设置成功页面的数据
+                // 将输入的金额格式化为两位小数
+                const formattedAmount = parseFloat(amountVal).toFixed(2);
+                paidAmountDisplay.innerText = formattedAmount;
+                
+                // 获取当前时间并格式化
+                const now = new Date();
+                payTimeDisplay.innerText = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+                // 切换视图 (隐藏输入页，显示成功页)
+                inputView.classList.add('hidden');
+                successView.classList.remove('hidden');
+                
+                // 触发成功页面的动画
+                window.scrollTo(0, 0);
+
+            }, 1500); // 延迟 1500 毫秒
+        }
+
+        // 重置演示 (点击“完成”按钮后)
+        function resetDemo() {
+            // 恢复按钮状态
+            payBtn.disabled = false;
+            payBtn.querySelector('span').innerText = '立即支付';
+            btnSpinner.classList.add('hidden');
+            amountInput.value = '';
+            amountTip.classList.add('hidden');
+
+            // 切换回输入视图
+            successView.classList.add('hidden');
+            inputView.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
